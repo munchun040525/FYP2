@@ -1,0 +1,55 @@
+{
+  "mitigation_mapping": {
+    "0": "M1",
+    "1": "M2",
+    "2": "M3",
+    "3": "M4",
+    "4": "M5",
+    "5": "M6",
+    "6": "M7",
+    "7": "M8",
+    "8": "M9",
+    "9": "M10",
+    "10": "M11",
+    "11": "M12",
+    "12": "M13",
+    "13": "M14",
+    "14":"M15",
+    "15":"M16"
+  },
+
+  "label_mapping": {
+    "0": "Benign",
+    "1": "Bot",
+    "2": "Brute Force -Web",
+    "3": "Brute Force -XSS",
+    "4": "DDOS attack-HOIC",
+    "5": "DDOS attack-LOIC-UDP",
+    "6": "DDoS attacks-LOIC-HTTP",
+    "7": "DoS attacks-GoldenEye",
+    "8": "DoS attacks-Hulk",
+    "9": "DoS attacks-SlowHTTPTest",
+    "10": "DoS attacks-Slowloris",
+    "11": "FTP-BruteForce",
+    "12": "Infilteration",
+    "13": "SQL Injection",
+    "14": "SSH-Bruteforce"
+  },
+  "attack_type_mapping": {
+    "0": "Benign",
+    "1": "Bot",
+    "2": "Brute Force",
+    "3": "DDoS",
+    "4": "DoS",
+    "5": "Infiltration",
+    "6": "Web Attack"
+  },
+  "attack_type_mitigation_mapping": {
+    "1": ["M1", "M2", "M3", "M8", "M9", "M10", "M14", "M15", "M16"],
+    "2": ["M2", "M4", "M5", "M6", "M7", "M13", "M14"],
+    "3": ["M1", "M3", "M4", "M5", "M7", "M8", "M15", "M16"],
+    "4": ["M1", "M3", "M4", "M5", "M7", "M8", "M15", "M16"],
+    "5": ["M2", "M4", "M5", "M6", "M7", "M13", "M14"],
+    "6": ["M1", "M2", "M6", "M7", "M9", "M15", "M16"]
+  }
+}
