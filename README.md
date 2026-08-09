@@ -1,48 +1,67 @@
-# Network Intrusion Detection System (CIC-IDS2018)
+# FL-IDS: Federated Learning Intrusion Detection System
 
-## Overview
-This repository contains the source code and documentation for a Network Intrusion Detection System (NIDS), developed as a Final Year Project. The project focuses on building robust machine learning models to analyze network traffic and detect malicious activities using the **CIC-IDS2018 dataset**.
+**241UC24160 — Network Anomaly Prediction, Detection, and Mitigation using Machine Learning**
+Loke Mun Chun, supervised by Dr. Pee Chih Yang, MMU Faculty of Computing & Informatics
+
+## Project Overview
+
+This project implements a Federated Learning-based Intrusion Detection System (FL-IDS) using the CSE-CIC-IDS2018 dataset. A lightweight 1D-CNN model (67,335 parameters, ~263KB) is trained under the FedAvg protocol across IID, Non-IID (70/20/10 label skew), and Extreme Non-IID partitioning scenarios, then compared against centralized XGBoost and 1D-CNN baselines.
+
+Key results (on the real CSE-CIC-IDS2018 dataset, ~15.7M flows):
+- Centralized 1D-CNN baseline: 98.24% test accuracy
+- FL-IID (5 clients): 98.24% — matches centralized exactly
+- FL-Non-IID (5 clients): 98.22% — only 0.02% degradation
+- FL-Extreme Non-IID (10 clients): 89.36% — FedAvg fails under extreme heterogeneity
+
+## Notebooks
+
+The pipeline is split across four Jupyter notebooks, meant to be run in this order:
+
+| Notebook | Purpose |
+|---|---|
+| `A combine and spliting.ipynb` | Stage 1: Combine 10 daily CSE-CIC-IDS2018 CSVs, clean (remove duplicates, corrupted timestamps, stray headers), map 15 raw labels to 7 Attack_Type categories, chronological 70/15/15 train/val/test split |
+| `New Preprocessing-Train-Val-Test-setb.ipynb` | Stage 2-3: Clean numeric columns, handle NaN/Inf/negatives, stratified 80/20 re-split of train+val pool, Min-Max normalization, Boruta and CorrMI feature selection (Top-10/20/30 subsets) |
+| `Model Training-Boruta-setc.ipynb` | Stage 4: XGBoost grid search (27 combinations × 6 variants: T10/T20/T30/Downsampling/SMOTE1/SMOTE2) + centralized 1D-CNN training and evaluation |
+| `FL_improved_v3.ipynb` | Stage 5: Federated Learning — IID/Non-IID/Extreme Non-IID client partitioning, FedAvg training loop (R=20 rounds, E=5 local epochs, batch=256), local epoch sensitivity analysis (E=1/5/10) |
 
 ## Dataset
-The project utilizes the CSE-CIC-IDS2018 dataset, a comprehensive collection of network traffic data containing both benign and attack flows.
-- **Size:** Approximately 16 million records.
-- **Classes:** Benign, SQL Injection, Brute Force, DoS, Bot, etc.
-- **Challenge:** Severe class imbalance (e.g., ~13 million Benign flows vs. 87 SQL Injection flows).
-- **Strategy:** Applied stratified splitting by label and undersampling techniques to ensure balanced detection capabilities.
 
-## Tech Stack
-- **Language:** Python
-- **Data Manipulation:** `pandas`, `numpy`
-- **Machine Learning:** `scikit-learn`
-- **Data Visualization:** `seaborn`, `matplotlib`
+The CSE-CIC-IDS2018 dataset (~13M+ flow records) is **not included** in this repository — it is too large and not this project's data to redistribute. Download it from the Canadian Institute for Cybersecurity's official distribution, then point the first notebook's `datapath` variable at the folder containing the 10 daily CSV files.
 
-## Project Structure
-```text
-├── data/               # Raw and processed datasets (e.g., combined_data1.csv)
-├── notebooks/          # Jupyter notebooks for EDA and Model Training
-│   ├── 01_EDA.ipynb
-│   ├── 02_Data_Cleaning.ipynb
-│   └── 03_Model_Evaluation.ipynb
-├── src/                # Source code for data preprocessing and modeling
-├── requirements.txt    # Python dependencies
-└── README.md           # Project documentation
+## Environment
+
+Developed and tested on:
+- Windows 11, Intel i7 / AMD Ryzen 7, 32GB RAM (MMU FCI Lab)
+- Python 3.x (Anaconda), Jupyter Notebook
+- See `requirements.txt` for package dependencies
+
+Install dependencies:
+```bash
+pip install -r requirements.txt
 ```
 
-## Methodology
-1. **Data Cleaning:** 
-   - Removed redundant headers (e.g., `Label == 'Label'`).
-   - Handled missing values (NaN) and infinite values (Inf) resulting from traffic calculations.
-   - Dropped identifying and highly-missing features (e.g., `Flow ID`, `Src IP`, `Src Port`, `Dst IP`, `Timestamp`) to prevent overfitting.
-2. **Preprocessing:** Stratified data splitting to preserve the distribution of rare attack classes during training and testing.
-3. **Modeling:** Training and evaluating classification models to detect anomalous network behavior.
+## 1D-CNN Architecture (Table 4.1 in report)
 
-## Installation & Usage
-1. Clone this repository:
-   ```bash
-   git clone [https://github.com/munchun040525/FYP2.git](https://github.com/munchun040525/FYP2.git)
-   ```
-2. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Run the data processing scripts in the `src/` directory or follow the step-by-step Jupyter notebooks.
+| Layer | Output Shape | Parameters |
+|---|---|---|
+| Conv1D (64 filters, kernel=3) + BatchNorm + MaxPool | (4, 64) | 256 + 256 |
+| Conv1D (128 filters, kernel=3) + BatchNorm + MaxPool | (1, 128) | 24,704 + 512 |
+| Flatten → Dense(128) → Dropout(0.3) | (128) | 16,512 |
+| Dense(64) → Dropout(0.3) | (64) | 8,256 |
+| Dense(7, softmax) | (7) | 455 |
+| **Total** | | **67,335** (~263KB) |
+
+## Federated Learning Configuration
+
+- Algorithm: FedAvg (McMahan et al., 2017)
+- Communication rounds: R = 20
+- Local epochs: E = 5 (default), sensitivity tested with E = 1 and E = 10
+- Batch size: 256
+- Clients tested: K = 5, 10, 15
+- Boruta Top-10 features used for all FL experiments
+
+## Files
+
+- `mappings.json` — label-to-integer encoding mappings used during preprocessing
+- `requirements.txt` — Python package dependencies
+- `.gitignore` — excludes data files, trained models, and Python cache from version control
