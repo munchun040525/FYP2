@@ -1,5 +1,16 @@
-pandas 
-numpy 
-scikit-learn 
-seaborn 
-matplotlib 
+# requirements.txt
+# Dependencies for running all four notebooks.
+# Tested on Python 3.x (Anaconda), Windows 11.
+
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+tensorflow
+xgboost
+Boruta
+imbalanced-learn
+joblib
+plotly
+streamlit
